@@ -1,8 +1,18 @@
-# Skybit CLI Trader
+# Skybit CLI — Minimal Agent via Crush + MCP
 
-> **Claude‑Code‑style trading in your terminal:** type your intent → get a plan/analysis → preview the orders → approve to execute.
+Natural‑language trading with explicit approvals. We run Charm’s Crush as the agent shell and expose Skybit tools via a local MCP HTTP server. The model uses OpenRouter (Opus) and calls tools deterministically; you review a Preview and then type `approve` to execute.
 
-Trade equities from any terminal through a natural‑language chat interface. The LLM interprets intent and uses MCP tools to draft, simulate, and execute brokered orders—only after your approval.
+## How it works
+
+1. Login — `skybit login` starts a device‑code browser flow; the CLI holds a short‑lived session token.
+2. Link a broker — `skybit brokers connect` opens SnapTrade Connect; you OAuth/MFA with your broker once.
+3. Add data — `skybit data add polygon|iex|nasdaq|databento` (your API keys). The CLI streams from vendor websockets; the model uses snapshots for determinism.
+4. Chat — `skybit` opens a session. You type plain English; the model proposes a Plan (tool calls) and a Preview (orders, impact, fees if enabled, policy checks).
+5. Approve — you confirm inline; we submit via SnapTrade and stream status; everything is logged.
+6. Exit — quitting the CLI closes the websocket; no watchers, no daemons.
+
+> **Callout — MCP in this product**
+> MCP is the tool layer the LLM calls (e.g., `trade.place_order`, `data.snapshot`). MCP is not a copilot; the chat model provides intent, MCP provides callable tools.
 
 ## Features
 
@@ -15,40 +25,23 @@ Trade equities from any terminal through a natural‑language chat interface. Th
 
 ## Quick Start
 
-### Installation
-
-#### macOS/Linux via Homebrew
+1) Start the local MCP server (embedded in skybit)
 ```bash
-brew tap skybit/tap
-brew install skybit-cli
+go run cmd/skybit/main.go
 ```
 
-#### Direct Download
-Download the latest binary from [GitHub Releases](https://github.com/skybit/cli/releases)
+2) Run Crush with OpenRouter
+```bash
+export OPENROUTER_API_KEY=your_key
+crush --config docs/crush.json
+```
 
-### Setup
-
-1. **Login with device-code authentication**
-   ```bash
-   skybit login
-   ```
-
-2. **Connect your broker**
-   ```bash
-   skybit brokers connect
-   ```
-
-3. **Add market data provider**
-   ```bash
-   skybit data add polygon
-   # Enter your API key when prompted
-   ```
-
-4. **Start trading**
-   ```bash
-   skybit
-   # Type: Buy 100 shares of AAPL at limit 225.50
-   ```
+3) Chat examples
+```text
+Buy 100 AAPL at limit 225.10 DAY
+approve
+cancel all
+```
 
 ## Usage
 
@@ -114,20 +107,20 @@ pnl                    # Show profit/loss
 
 ## Configuration
 
-Configuration file location: `~/.skybit/config.yaml`
+- `OPENROUTER_API_KEY` (required)
+- `OPENROUTER_MODEL` (default `anthropic/claude-3-opus`)
+- `SNAPTRADE_CLIENT_ID` (required for live orders)
+- `SNAPTRADE_CLIENT_SECRET` (required for live orders)
+- `SNAPTRADE_ENV` (default `sandbox`)
+- `SNAPTRADE_ACCOUNT_ID` (optional; default is first linked account)
 
-```yaml
-# Example configuration
-theme: dark
-default_broker: ibkr
-data_providers:
-  - polygon
-  - iex
-paper_mode: false
-risk_limits:
-  max_position_size: 10000
-  max_daily_trades: 50
-```
+### Environment variables
+
+- `SKYBIT_WS_URL` (default `wss://api.skybit.ai/artifact/v1`)
+- `SKYBIT_TOKEN` (required) — session token used in WS Auth
+- `SKYBIT_VERSION` (optional) — client version sent in Auth
+
+Backend LLM orchestration uses OpenRouter with Opus by default (see docs/technical-implementation.md). No configuration needed in the CLI.
 
 ## Development
 
@@ -165,6 +158,25 @@ skybit-cli/
 ├── proto/              # Protocol definitions
 └── docs/               # Documentation
 ```
+
+## Documentation
+
+- [Planner Orchestration (OpenRouter)](docs/planner-openrouter.md)
+- [MCP Tool Schemas](docs/mcp-tools-schemas.json)
+- [Crush sample config](docs/crush.json)
+
+### Using with Crush
+
+1. Start the local MCP server:
+   ```bash
+   go run cmd/skybit-mcp/main.go
+   ```
+2. Export your OpenRouter key and run Crush in this repo with our config:
+   ```bash
+   export OPENROUTER_API_KEY=your_key
+   crush --config docs/crush.json
+   ```
+3. Chat normally. The model will call our MCP tools for preview/approve flows.
 
 ## Contributing
 

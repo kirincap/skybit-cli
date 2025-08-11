@@ -1,0 +1,109 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MCP Tool Schemas",
+  "type": "object",
+  "properties": {
+    "data.snapshot": {
+      "type": "object",
+      "properties": {
+        "symbols": {"type": "array", "items": {"type": "string"}}
+      },
+      "required": ["symbols"]
+    },
+    "data.l2_snapshot": {
+      "type": "object",
+      "properties": {
+        "symbol": {"type": "string"},
+        "depth": {"type": "integer", "minimum": 1, "maximum": 50}
+      },
+      "required": ["symbol"]
+    },
+    "broker.accounts": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "broker.positions": {
+      "type": "object",
+      "properties": {
+        "account_id": {"type": "string"}
+      },
+      "required": ["account_id"]
+    },
+    "trade.preview": {
+      "type": "object",
+      "properties": {
+        "account_id": {"type": "string"},
+        "orders": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "symbol": {"type": "string"},
+              "side": {"type": "string", "enum": ["BUY", "SELL"]},
+              "qty": {"type": "number", "exclusiveMinimum": 0},
+              "type": {"type": "string", "enum": ["MARKET", "LIMIT"]},
+              "limit_price": {"type": "number"},
+              "tif": {"type": "string", "enum": ["DAY", "GTC"]}
+            },
+            "required": ["symbol", "side", "qty", "type", "tif"]
+          }
+        }
+      },
+      "required": ["account_id", "orders"]
+    },
+    "trade.place_order": {
+      "type": "object",
+      "properties": {
+        "account_id": {"type": "string"},
+        "order": {
+          "type": "object",
+          "properties": {
+            "symbol": {"type": "string"},
+            "side": {"type": "string", "enum": ["BUY", "SELL"]},
+            "qty": {"type": "number", "exclusiveMinimum": 0},
+            "type": {"type": "string", "enum": ["MARKET", "LIMIT"]},
+            "limit_price": {"type": "number"},
+            "tif": {"type": "string", "enum": ["DAY", "GTC"]},
+            "client_id": {"type": "string"}
+          },
+          "required": ["symbol", "side", "qty", "type", "tif", "client_id"]
+        }
+      },
+      "required": ["account_id", "order"]
+    },
+    "trade.cancel": {
+      "type": "object",
+      "properties": {
+        "account_id": {"type": "string"},
+        "broker_order_id": {"type": "string"}
+      },
+      "required": ["account_id", "broker_order_id"]
+    },
+    "trade.cancel_all": {
+      "type": "object",
+      "properties": {
+        "account_id": {"type": "string"}
+      },
+      "required": ["account_id"]
+    },
+    "policy.check": {
+      "type": "object",
+      "properties": {
+        "preview": {},
+        "context": {}
+      },
+      "required": ["preview"]
+    },
+    "audit.log": {
+      "type": "object",
+      "properties": {
+        "event": {"type": "string"},
+        "payload": {},
+        "ts": {"type": "string"}
+      },
+      "required": ["event", "payload", "ts"]
+    }
+  },
+  "additionalProperties": false
+}
