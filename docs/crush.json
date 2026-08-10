@@ -1,10 +1,10 @@
 {
   "$schema": "https://charm.land/crush.json",
   "providers": {
-    "openrouter": {
+    "skybit": {
       "type": "openai",
-      "base_url": "https://openrouter.ai/api/v1",
-      "api_key": "$(echo $OPENROUTER_API_KEY)",
+      "base_url": "http://localhost:8788/v1",
+      "api_key": "$(echo $SKYBIT_TOKEN)",
       "models": [
         { "id": "anthropic/claude-3-opus", "name": "Claude 3 Opus" }
       ]

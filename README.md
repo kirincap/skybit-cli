@@ -30,9 +30,17 @@ Natural‑language trading with explicit approvals. We run Charm’s Crush as th
 go run cmd/skybit/main.go
 ```
 
-2) Run Crush with OpenRouter
+2) Option A — direct to OpenRouter (dev/early prod)
 ```bash
-export OPENROUTER_API_KEY=your_key
+export OPENROUTER_API_KEY=your_openrouter_key
+crush --config docs/crush-openrouter.json
+```
+
+Option B — via Skybit proxy (recommended for production)
+```bash
+export OPENROUTER_API_KEY=your_team_key SKYBIT_PROXY_API_KEY=your_skybit_token
+go run cmd/skybit-proxy/main.go &
+export SKYBIT_TOKEN=your_skybit_token
 crush --config docs/crush.json
 ```
 
